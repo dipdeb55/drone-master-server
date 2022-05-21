@@ -3,14 +3,17 @@ const { MongoClient, ServerApiVersion } = require('mongodb');
 const cors = require('cors');
 const app = express()
 const port = process.env.PORT || 5000;
-require('dotenv').config()
+require('dotenv').config();
 
 // dronedb
 // oolpEkM7WccR6jLG
 
 
 
+
+// const uri = "mongodb+srv://dronedb:oolpEkM7WccR6jLG@cluster0.upnsi.mongodb.net/?retryWrites=true&w=majority";
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.upnsi.mongodb.net/?retryWrites=true&w=majority`;
+
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
 
@@ -18,7 +21,19 @@ app.use(cors())
 app.use(express.json())
 
 async function run() {
+
     try {
+
+        await client.connect()
+        const toolsCollection = client.db('flying-drone').collection('tools')
+
+        app.get('/tools', async (req, res) => {
+            const query = {}
+            const tools = await toolsCollection.find(query).toArray();
+            res.send(tools);
+
+        })
+
 
     }
     finally {
