@@ -27,6 +27,7 @@ async function run() {
 
         await client.connect()
         const toolsCollection = client.db('flying-drone').collection('tools')
+        const orderCollection = client.db('flying-drone').collection('orders')
 
         app.get('/tools', async (req, res) => {
             const query = {}
@@ -42,6 +43,11 @@ async function run() {
             res.send(result)
         })
 
+        app.post('/orders', async (req, res) => {
+            const order = req.body;
+            const result = await orderCollection.insertOne(order)
+            res.send(result)
+        })
 
     }
     finally {
