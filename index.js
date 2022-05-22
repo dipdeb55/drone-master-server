@@ -4,6 +4,7 @@ const cors = require('cors');
 const app = express()
 const port = process.env.PORT || 5000;
 require('dotenv').config();
+const ObjectId = require('mongodb').ObjectId;
 
 // dronedb
 // oolpEkM7WccR6jLG
@@ -32,6 +33,13 @@ async function run() {
             const tools = await toolsCollection.find(query).toArray();
             res.send(tools);
 
+        })
+
+        app.get('/tools/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) }
+            const result = await toolsCollection.findOne(query)
+            res.send(result)
         })
 
 
