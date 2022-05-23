@@ -5,11 +5,12 @@ const app = express()
 const port = process.env.PORT || 5000;
 require('dotenv').config();
 const ObjectId = require('mongodb').ObjectId;
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY)
+
+// console.log(stripe)
 
 // dronedb
 // oolpEkM7WccR6jLG
-
-
 
 
 // const uri = "mongodb+srv://dronedb:oolpEkM7WccR6jLG@cluster0.upnsi.mongodb.net/?retryWrites=true&w=majority";
@@ -28,6 +29,8 @@ async function run() {
         await client.connect()
         const toolsCollection = client.db('flying-drone').collection('tools')
         const orderCollection = client.db('flying-drone').collection('orders')
+        const userCollection = client.db('flying-drone').collection('users')
+        const paymentCollection = client.db('flying-drone').collection('payments')
 
         app.get('/tools', async (req, res) => {
             const query = {}
@@ -70,6 +73,66 @@ async function run() {
             const result = await orderCollection.findOne(query)
             res.send(result)
 
+        })
+
+        app.put('/user/:email', async (req, res) => {
+            const email = req.params.email;
+            const user = req.body;
+            const filter = { email: email };
+            const options = { upsert: true };
+            const updatedDoc = {
+                $set: user,
+            };
+            const result = await userCollection.updateOne(filter, updatedDoc, options);
+            // const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
+            res.send(result);
+        })
+
+        app.get('/user', async (req, res) => {
+            const query = {};
+            const result = await userCollection.find(query).toArray()
+            res.send(result)
+        })
+
+        app.put('/user/admin/:email', async (req, res) => {
+            const email = req.params.email;
+            const filter = { email: email }
+            const updatedDoc = {
+                $set: { role: 'admin' },
+            };
+            const result = await userCollection.updateOne(filter, updatedDoc);
+            res.send(result);
+        })
+
+        // payment api
+        app.post('/create-payment-intent', async (req, res) => {
+            const service = req.body;
+            const price = service.price;
+            const amount = price * 100;
+            // console.log(amount)
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amount,
+                currency: 'usd',
+                payment_method_types: ['card']
+            });
+
+            res.send({ clientSecret: paymentIntent.client_secret })
+        });
+
+        app.patch('/orders/:id', async (req, res) => {
+            const id = req.params.id;
+            const payment = req.body;
+            console.log(payment)
+            const filter = { _id: ObjectId(id) };
+            const updatedDoc = {
+                $set: {
+                    paid: true,
+                    transactionId: payment.transactionId
+                }
+            }
+            const result = await paymentCollection.insertOne(payment);
+            const updatedOrder = await orderCollection.updateOne(filter, updatedDoc);
+            res.send(updatedOrder);
         })
 
     }
