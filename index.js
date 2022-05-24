@@ -46,6 +46,12 @@ async function run() {
             res.send(result)
         })
 
+        app.post('/tools', async (req, res) => {
+            const tool = req.body;
+            const result = await toolsCollection.insertOne(tool);
+            res.send(result)
+        })
+
         // orders api
         app.post('/orders', async (req, res) => {
             const order = req.body;
