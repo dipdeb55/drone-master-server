@@ -31,6 +31,7 @@ async function run() {
         const orderCollection = client.db('flying-drone').collection('orders')
         const userCollection = client.db('flying-drone').collection('users')
         const paymentCollection = client.db('flying-drone').collection('payments')
+        const reviewCollection = client.db('flying-drone').collection('reviews')
 
         app.get('/tools', async (req, res) => {
             const query = {}
@@ -110,6 +111,26 @@ async function run() {
             res.send(result);
         })
 
+        app.get('/admin/:email', async (req, res) => {
+            const email = req.params.email;
+            const user = await userCollection.findOne({ email: email });
+            const isAdmin = user.role === "admin";
+            res.send({ admin: isAdmin })
+        })
+
+        // review api
+        app.post('/review', async (req, res) => {
+            const review = req.body;
+            const result = await reviewCollection.insertOne(review)
+            res.send(result)
+        })
+
+        app.get('/review', async (req, res) => {
+            const query = {};
+            const reviews = await reviewCollection.find(query).toArray()
+            res.send(reviews);
+        })
+
         // payment api
         app.post('/create-payment-intent', async (req, res) => {
             const service = req.body;
@@ -128,7 +149,7 @@ async function run() {
         app.patch('/orders/:id', async (req, res) => {
             const id = req.params.id;
             const payment = req.body;
-            console.log(payment)
+            // console.log(payment)
             const filter = { _id: ObjectId(id) };
             const updatedDoc = {
                 $set: {
