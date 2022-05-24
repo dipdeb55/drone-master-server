@@ -54,6 +54,12 @@ async function run() {
         })
 
         // orders api
+        app.get('/orders', async (req, res) => {
+            const query = {};
+            const orders = await orderCollection.find(query).toArray();
+            res.send(orders);
+        })
+
         app.post('/orders', async (req, res) => {
             const order = req.body;
             const result = await orderCollection.insertOne(order)
