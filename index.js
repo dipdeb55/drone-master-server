@@ -37,7 +37,6 @@ async function run() {
             const query = {}
             const tools = await toolsCollection.find(query).toArray();
             res.send(tools);
-
         })
 
         app.get('/tools/:id', async (req, res) => {
@@ -50,6 +49,13 @@ async function run() {
         app.post('/tools', async (req, res) => {
             const tool = req.body;
             const result = await toolsCollection.insertOne(tool);
+            res.send(result)
+        })
+
+        app.delete('/tools/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await toolsCollection.deleteOne(query);
             res.send(result)
         })
 
