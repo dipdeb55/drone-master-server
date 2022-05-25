@@ -6,6 +6,7 @@ const port = process.env.PORT || 5000;
 require('dotenv').config();
 const ObjectId = require('mongodb').ObjectId;
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY)
+const jwt = require('jsonwebtoken');
 
 // console.log(stripe)
 
@@ -103,8 +104,8 @@ async function run() {
                 $set: user,
             };
             const result = await userCollection.updateOne(filter, updatedDoc, options);
-            // const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
-            res.send(result);
+            const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '2h' })
+            res.send({ result, token });
         })
 
         app.get('/user', async (req, res) => {
