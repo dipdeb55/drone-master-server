@@ -37,6 +37,7 @@ async function run() {
         const userCollection = client.db('flying-drone').collection('users')
         const paymentCollection = client.db('flying-drone').collection('payments')
         const reviewCollection = client.db('flying-drone').collection('reviews')
+        const profileCollection = client.db('flying-drone').collection('profiles')
 
         app.get('/tools', async (req, res) => {
             const query = {}
@@ -65,7 +66,7 @@ async function run() {
         })
 
         // orders api
-        app.get('/orders', verifyJWT, async (req, res) => {
+        app.get('/orders', async (req, res) => {
             const query = {};
             const orders = await orderCollection.find(query).toArray();
             res.send(orders);
@@ -120,7 +121,7 @@ async function run() {
             res.send(result)
         })
 
-        app.put('/user/admin/:email', async (req, res) => {
+        app.put('/user/admin/:email', verifyJWT, async (req, res) => {
             const email = req.params.email;
             const filter = { email: email }
             const updatedDoc = {
@@ -146,6 +147,12 @@ async function run() {
             const user = await userCollection.findOne({ email: email });
             const isAdmin = user.role === "admin";
             res.send({ admin: isAdmin })
+        })
+
+        app.post('/profile', async (req, res) => {
+            const profile = req.body;
+            const result = await profileCollection.insertOne(profile);
+            res.send(result)
         })
 
         // review api
