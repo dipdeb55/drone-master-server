@@ -19,14 +19,18 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster
 
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
-
 app.use(cors())
 app.use(express.json())
 
+function verifyJWT(req, res, next) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+        return res.status(401).send({ message: 'UnAuthorized access' })
+    }
+}
+
 async function run() {
-
     try {
-
         await client.connect()
         const toolsCollection = client.db('flying-drone').collection('tools')
         const orderCollection = client.db('flying-drone').collection('orders')
@@ -61,7 +65,7 @@ async function run() {
         })
 
         // orders api
-        app.get('/orders', async (req, res) => {
+        app.get('/orders', verifyJWT, async (req, res) => {
             const query = {};
             const orders = await orderCollection.find(query).toArray();
             res.send(orders);
@@ -75,6 +79,8 @@ async function run() {
 
         app.get('/orders/myorder', async (req, res) => {
             const email = req.query.email;
+            const authorization = req.headers.authorization;
+            // console.log(authorization);
             const query = { email: email }
             const result = await orderCollection.find(query).toArray()
             res.send(result);
